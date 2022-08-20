@@ -1,0 +1,6 @@
+"0",""
+"0",""
+"0","newpred = predict(simple, newtest, type = ""response"")"
+"2","Error in predict.lm(object, newdata, se.fit, scale = 1, type = if (type ==  : 
+  object 'newtest' not found
+"

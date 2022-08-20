@@ -1,0 +1,2 @@
+"0","corrplot(cor(data[2:14]), type = ""lower"", order = ""FPC"", "
+"0","         tl.col = ""black"", tl.srt = 30)"

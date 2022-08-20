@@ -1,0 +1,3 @@
+"0",""
+"0","#Serum Sodium"
+"0","ggplot(data, aes(x = serum_sodium)) + geom_histogram(binwidth = 1, colour =  ""white"", fill = ""slateblue"", alpha = 0.7) + labs(title = ""Histogram of Sodium in Blood"") + geom_density(eval(bquote(aes(y=..count..))),colour=""black"") + geom_vline(xintercept = 135, linetype = ""dashed"") + geom_vline(xintercept = 145, linetype = ""dashed"")"

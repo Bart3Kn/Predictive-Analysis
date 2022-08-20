@@ -1,0 +1,199 @@
+---
+title: "1713314_PDA"
+author: "Bartosz Napieralski"
+date: "4/4/2022"
+output: html_document
+---
+
+# Data
+The data that our group is going to be using can be found here:
+https://www.kaggle.com/datasets/andrewmvd/heart-failure-clinical-data
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#install.packages("tidyverse")
+#install.packages("ggplot2")
+#install.packages("ggpubr")
+#install.packages("corrplot")
+
+library(ggplot2)
+library(tidyverse)
+library(ggpubr)
+library(corrplot)
+```
+
+
+## Reading and preparing the Dataset
+```{r}
+raw <- read.csv("heart_failure_clinical_records_dataset.csv")
+#Looking for any missing data
+table(is.na(raw))
+
+#Removing any missing columns
+data <- na.omit(raw)
+
+#Quick summary of the data
+summary(data)
+
+```
+## METADATA
+Here is a breakdown of all of the :
+
+- Age - Age
+- Anaemia - Decrease of red blood cells or hemoglobin (0 = No, 1 = Yes)
+- Creatinine_phosphokinase -  Level of the CPK enzyme in the blood
+Normal Values range between 10 to 120 mcg/L
+https://www.mountsinai.org/health-library/tests/creatine-phosphokinase-test
+
+- Diabetes - If the patient has diabetes (0 = No, 1 = Yes)
+- Ejection_fraction - Percentage of blood leaving the heart at each contraction (percentage)
+Normal Values have a percentage of 40% EF or higher, abnormal is below 40
+https://my.clevelandclinic.org/health/articles/16950-ejection-fraction
+
+- High_blood_pressure - If the patient has hypertension (0 = No, 1 = Yes)
+- Platelets - Platelets in the blood (kiloplatelets/mL)
+Normal amount of platelets is between 150,000 and 450,000 kiloplatelets/mL
+https://www.hopkinsmedicine.org/health/conditions-and-diseases/what-are-platelets-and-why-are-they-important#:~:text=A%20normal%20platelet%20count%20ranges,complete%20blood%20count%20(CBC).
+
+- Serum_creatinine - Level of serum creatinine in the blood (mg/dL)
+For men it is 0.74-1.35mg/dL
+For wormen it is 0.59-1.04mg/dL
+https://www.mayoclinic.org/tests-procedures/creatinine-test/about/pac-20384646#:~:text=Serum%20creatinine%20level&text=The%20amount%20of%20creatinine%20in,blood%20(micromoles%2FL).
+
+- Serum_sodium - Level of serum sodium in the blood (mEq/L)
+Normal levels are between 135-145 mEq/L
+https://www.mayoclinic.org/diseases-conditions/hyponatremia/symptoms-causes/syc-20373711#:~:text=A%20normal%20blood%20sodium%20level,Certain%20medications.
+
+- Sex - Woman (0) or Man (1)
+- smoking - If the patient smokes or not (0 = No, 1 = Yes)
+- time - Follow up period (days)
+- DEATH_EVENT - If the patient deceased during the follow up period (0 = No, 1 = Yes)
+
+
+
+```{r}
+#Adding ID to keep track of data
+data$id <- seq.int(nrow(data))
+data <- data %>% relocate(id)
+
+
+#Assigning Character Value to correct parameters
+data$sexCH <- ifelse(data$sex == 1, "Male", "Female")
+data$sex <- as.logical(data$sex)
+data$anaemiaCH <- ifelse(data$anaemia == 1, "Yes", "No")
+data$anaemia <- as.logical(data$anaemia)
+data$diabetesCH <- ifelse(data$diabetes == 1, "Yes", "No")
+data$diabetes <- as.logical(data$diabetes)
+data$high_blood_pressureCH <- ifelse(data$high_blood_pressure == 1, "Yes", "No")
+data$high_blood_pressure <- as.logical(data$high_blood_pressure)
+data$smokingCH <- ifelse(data$smoking == 1, "Yes", "No")
+data$smoking <- as.logical(data$smoking)
+data$DEATH_EVENT <- as.logical(data$DEATH_EVENT)
+
+
+summary(data)
+
+write.csv(data, "./data.csv", row.names = FALSE)
+```
+
+# Data Exploration
+
+```{r}
+# Since I am using large amounts of data, we can look at the population of the data
+
+# Sex
+plotSex <- ggplot(data, aes(x = sexCH)) + geom_bar(fill = "turquoise") + labs(x = "Sex", title = "Population Distributions") + theme_minimal(base_size = 10)
+plotSmoke <- ggplot(data, aes(x = smokingCH)) + geom_bar(fill = "orangered") + labs(x = "Smoking") +theme_minimal(base_size = 10)
+plotDiab <- ggplot(data, aes(x = diabetesCH)) + geom_bar(fill = "red") + labs(x = "Diabetic") +theme_minimal(base_size = 10)
+plotDeath <- ggplot(data, aes(x = DEATH_EVENT)) + geom_bar(fill = "slateblue") + labs(x = "Died during follow up period") +theme_minimal(base_size = 10)
+
+ggarrange(plotSex, plotSmoke, plotDiab, plotDeath)
+
+ggplot(data, aes(x = age, y = smokingCH, color = sexCH)) + geom_boxplot()
+
+```
+```{r}
+#AGE
+ggplot(data, aes(x=age)) + geom_histogram(binwidth = 5, colour = "white", fill="seagreen", alpha = 0.7)+ theme_minimal(base_size = 10) + labs(title = "Age Distribution") + geom_density(eval(bquote(aes(y=..count..*5))),colour="black")
+#CPK
+ggplot(data, aes(x = creatinine_phosphokinase)) + geom_histogram(binwidth = 100, colour = "white", fill = "orangered", alpha = 0.7) + labs(title = "Creatinine Phosphokinase Distribution") + geom_density(eval(bquote(aes(y=..count.. * 100))),colour="black") + geom_vline(xintercept = 10, linetype = "dashed") + geom_vline(xintercept = 120, linetype = "dashed")
+
+#Ejection Fraction
+ggplot(data, aes(x = ejection_fraction )) + geom_histogram(binwidth = 5, colour =  "white", fill = "blue", alpha = 0.7) + labs(title = "Histogram of Ejection Fraction") + geom_density(eval(bquote(aes(y=..count..*5))),colour="black") + geom_vline(xintercept = 40, linetype = "dashed") + annotate("text", x = 20, y = 60, label = "Abnormal") + annotate("text", x = 55, y = 60, label = "Normal")
+
+#Platelets
+ggplot(data, aes(x = platelets)) + geom_histogram(binwidth = 25000, colour =  "white", fill = "red", alpha = 0.7) + labs(title = "Histogram of Platelet Count") + geom_density(eval(bquote(aes(y=..count.. *25000))),colour="black") + geom_vline(xintercept = 150000, linetype = "dashed") + geom_vline(xintercept = 450000, linetype = "dashed")
+
+#Serum Creatinine
+ggplot(data, aes(x = serum_creatinine)) + geom_histogram(binwidth = 0.2, colour =  "white", fill = "plum", alpha = 0.7) + labs(title = "Histogram of Creatinine in Blood") + geom_density(eval(bquote(aes(y=..count..*0.2))),colour="black") + geom_vline(xintercept = 0.59, linetype = "dashed") + geom_vline(xintercept = 1.35, linetype = "dashed")
+
+#Serum Sodium
+ggplot(data, aes(x = serum_sodium)) + geom_histogram(binwidth = 1, colour =  "white", fill = "slateblue", alpha = 0.7) + labs(title = "Histogram of Sodium in Blood") + geom_density(eval(bquote(aes(y=..count..))),colour="black") + geom_vline(xintercept = 135, linetype = "dashed") + geom_vline(xintercept = 145, linetype = "dashed")
+```
+ 
+```{r}
+ggplot(data, aes(x = ejection_fraction, y = age, color = DEATH_EVENT)) + geom_point() + labs(title = "Age vs Ejection Fraction by Death Event")
+```
+ 
+ 
+ 
+ ## Correlations
+ We can look for different correlation between the different ariabels to check for any different 
+ 
+```{r}
+corrplot(cor(data[2:14]), type = "lower", order = "FPC", 
+         tl.col = "black", tl.srt = 30)
+```
+When looking at the current data we can see that there are a few different correlation are seem to arise, both positive and negative. I will investigate them further.
+
+```{r}
+
+
+cor.test(data$serum_creatinine, data$age)
+#Being older does not mean that the number of creatinine in your blood specifically increases, however there is a weak correlation of 0.159
+#Due to p-value being higher than 0.005 it is significant enough.
+```
+## Splitting the data for training/testing
+
+```{r}
+set.seed(64)
+split <- sample(c(rep(0, 0.7 * nrow(data)),
+                  rep(1, 0.3 * nrow(data))))
+
+data_train <- data[split == 0,]
+data_test <- data[split == 1,]
+
+```
+# Regression Model
+## Creating a General Linear Model
+
+In order for me to create a model that is able to predict possible death during the follow up period, I am going to have to correctly train a model that is able to predict the event. As such I will use a regression model to be able to predict possible outcomes.
+
+
+```{r}
+model <- glm(data = data_train, family = "binomial", formula = DEATH_EVENT ~ age + anaemia + creatinine_phosphokinase + diabetes + ejection_fraction + high_blood_pressure + platelets + serum_creatinine + serum_sodium + sex + smoking + time)
+
+summary.glm(model)
+
+simple <- step(model)
+
+summary.glm(simple)
+
+exp(coef(simple))
+
+plot(simple)
+```
+
+## Checking the performance of the model:
+```{r}
+
+predictions <- predict(simple, data_test, type = "response")
+output <- ifelse(predictions>0.5, 1,0)
+print("Output of prediction based on test data")
+test_output <- table(Actuals = data_test$DEATH_EVENT, Predictions = predictions>0.5)
+print(test_output)
+test_acc <- (test_output[1:1] + test_output[2:2])/nrow(data_test)
+
+print(paste("Accuracy of the model on the test set:", test_acc))
+
+```

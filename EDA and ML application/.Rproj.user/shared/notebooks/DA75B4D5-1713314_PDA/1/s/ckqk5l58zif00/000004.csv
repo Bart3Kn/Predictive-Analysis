@@ -1,0 +1,2 @@
+"0","#CPK"
+"0","ggplot(data, aes(x = creatinine_phosphokinase)) + geom_histogram(binwidth = 100, colour = ""white"", fill = ""orangered"", alpha = 0.7) + labs(title = ""Creatinine Phosphokinase Distribution"") + geom_density(eval(bquote(aes(y=..count.. * 100))),colour=""black"") + geom_vline(xintercept = 10, linetype = ""dashed"") + geom_vline(xintercept = 120, linetype = ""dashed"")"

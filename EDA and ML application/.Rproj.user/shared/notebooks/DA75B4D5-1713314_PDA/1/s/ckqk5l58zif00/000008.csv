@@ -1,0 +1,3 @@
+"0",""
+"0","#Platelets"
+"0","ggplot(data, aes(x = platelets)) + geom_histogram(binwidth = 25000, colour =  ""white"", fill = ""red"", alpha = 0.7) + labs(title = ""Histogram of Platelet Count"") + geom_density(eval(bquote(aes(y=..count.. *25000))),colour=""black"") + geom_vline(xintercept = 150000, linetype = ""dashed"") + geom_vline(xintercept = 450000, linetype = ""dashed"")"

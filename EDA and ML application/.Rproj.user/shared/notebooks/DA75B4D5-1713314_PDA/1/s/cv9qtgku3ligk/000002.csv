@@ -1,0 +1,7 @@
+"0","set.seed(64)"
+"0","split <- sample(c(rep(0, 0.7 * nrow(data)),"
+"0","                  rep(1, 0.3 * nrow(data))))"
+"0",""
+"0","data_train <- data[split == 0,]"
+"0","data_test <- data[split == 1,]"
+"0",""
